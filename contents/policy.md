@@ -10,6 +10,7 @@
 
 まず、プリセットされるポリシー一覧を確認してみましょう。ポリシーを管理するエンドポイントは`sys/policy`と`sys/policies`です。`sys`のエンドポイントには[その他にも様々な機能](https://www.vaultproject.io/api/system/index.html)が用意されています。
 
+・macOS
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault list sys/policy
@@ -19,7 +20,18 @@ Keys
 default
 root
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault list sys/policy
 
+Keys
+----
+default
+root
+```
+
+・macOS , Windows
 ```console
 $ vault read sys/policy/default
 
@@ -45,6 +57,7 @@ path "auth/token/revoke-self" {
 
 `path`と指定されているのが各エンドポイントで`capablities`が各エンドポイントに対する権限を現しています。試しに`default`の権限を持つトークンを発行してみましょう。`default`にはこの前に作成した`database`への権限はないので`database`のパスへの如何なる操作もできないはずです。
 
+・macOS , Windows
 ```console
 $ vault token create -policy=default
 Key                  Value
@@ -60,13 +73,20 @@ policies             ["default"]
 
 `default`の権限を持ったトークンを生成しました。このトークンをコピーします。Tokenを環境変数にセットしておきましょう。
 
+・macOS
 ```shell
 $ export DEFAULT_TOKEN=s.acBPCz3lfDryfVr01RgwyTqK
 $ export ROOT_TOKEN=s.51du1iIeam79Q5fBRBALVhRB
 ```
+・Windows
+```shell
+PS > $env:DEFAULT_TOKEN=s.acBPCz3lfDryfVr01RgwyTqK
+PS > $env:ROOT_TOKEN=s.51du1iIeam79Q5fBRBALVhRB
+```
 
 `database`エンドポイントにアクセスしましょう。権限がないため`permission denied`が発生します。
 
+・macOS
 ```console
 $ VAULT_TOKEN=$DEFAULT_TOKEN vault list database/roles
 Error listing database/roles/: Error making API request.
@@ -77,11 +97,16 @@ Code: 403. Errors:
 * 1 error occurred:
 	* permission denied
 ```
+・Windows
+```shell
+PS > $env:VAULT_TOKEN = $env:DEFAULT_TOKEN vault list database/roles
+```
 
 ## ポリシーを作る
 
 ポリシーはVaultのコンフィグレーションと同様`HCL`で記述します。
 
+・macOS
 ```shell
 $ cd /path/to/vault-workshop
 $ cat > my-first-policy.hcl <<EOF
@@ -90,13 +115,29 @@ path "database/*" {
 }
 EOF
 ```
+・Windows
+```shell
+PS > cd /path/to/vault-workshop
+以下の内容で`my-first-policy.hcl`ファイルを作成します。
+path "database/*" {
+  capabilities = [ "read", "list"]
+}
+```
 
 作ったら`vault policy write`のコマンドでポリシーを作成します。ポリシーの作成はRoot Tokenで実施します。
 
+・macOS
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 Success! Uploaded policy: my-policy
+```
+・Windows
+```shell
+PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
+```
 
+・macOS , Windows
+```console
 $ vault policy list           
 default
 my-policy
@@ -110,8 +151,22 @@ path "database/*" {
 
 新しいポリシーができました。このポリシーと紐づけられたトークンは`database`エンドポイントへの`read`, `list`の権限を与えられます。ではトークンを発行してみます。
 
+・macOS
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault token create -policy=my-policy 
+Key                  Value
+---                  -----
+token                s.bA9M42W41G7tF90REMDCtMeO
+token_accessor       LfQCnqPOJHGqO8TplfSjTNFs
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "my-policy"]
+identity_policies    []
+policies             ["default" "my-policy"]
+```
+・Windows
+```shell
+PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault token create -policy=my-policy
 Key                  Value
 ---                  -----
 token                s.bA9M42W41G7tF90REMDCtMeO
@@ -125,10 +180,16 @@ policies             ["default" "my-policy"]
 
 Vaultにこのトークンを使って以下のコマンドを実行してください。
 
+・macOS
 ```shell
 $ export MY_TOKEN=s.bA9M42W41G7tF90REMDCtMeO
 ```
+・Windows
+```shell
+PS > $env:MY_TOKEN = "s.bA9M42W41G7tF90REMDCtMeO"
+```
 
+・macOS
 ```console
 $ VAULT_TOKEN=$MY_TOKEN vault list database/roles       
 Keys
@@ -156,13 +217,50 @@ Code: 403. Errors:
 
 * preflight capability check returned 403, please ensure client's policies grant access to path "kv/"
 ```
+・Windows
+```shell
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault list database/roles       
+Keys
+----
+role-handson
+role-handson-2
+role-handson-3
+
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault read database/roles/role-handson
+Key                      Value
+---                      -----
+creation_statements      [CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON *.* TO '{{name}}'@'%';]
+db_name                  my-mysql-database
+default_ttl              1h
+max_ttl                  24h
+renew_statements         []
+revocation_statements    []
+rollbakc_statements      []
+
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault kv list kv/
+Error making API request.
+
+URL: GET http://127.0.0.1:8200/v1/sys/internal/ui/mounts/kv
+Code: 403. Errors:
+
+* preflight capability check returned 403, please ensure client's policies grant access to path "kv/"
+```
 
 Databaseのエンドポイントのread, list出来てきますがkvエンドポイントには権限がないことがわかります。
 
 次にDatabaseエンドポイントにwriteの処理をしてみましょう。
 
+・macOS
 ```shell
 $ VAULT_TOKEN=$MY_TOKEN vault write database/roles/role-handson-4 \
+    db_name=mysql-handson-db \
+    creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON handson.product TO '{{name}}'@'%';" \
+    default_ttl="30s" \
+    max_ttl="30s"
+```
+・Windows
+```shell
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault write database/roles/role-handson-4 \
     db_name=mysql-handson-db \
     creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON handson.product TO '{{name}}'@'%';" \
     default_ttl="30s" \
@@ -188,15 +286,27 @@ Code: 403. Errors:
 
 正解は[こちら](https://raw.githubusercontent.com/tkaburagi/vault-configs/master/policies/my-first-policy.hcl)です。
 
+・macOS
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 $ VAULT_TOKEN=$ROOT_TOKEN vault token create -policy=my-policy -ttl=20m
 ```
+・Windows
+```console
+PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
+PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault token create -policy=my-policy -ttl=20m
+```
 
+・macOS
 ```shell
 $ export MY_TOKEN=<TOKEN_ABOVE>
 ```
+・Windows
+```shell
+PS > $env:MY_TOKEN = "<TOKEN_ABOVE>"
+```
 
+・macOS
 ```
 $ VAULT_TOKEN=$MY_TOKEN vault list database/roles
 Keys
@@ -215,6 +325,35 @@ Code: 403. Errors:
 	* permission denied
 
 $ VAULT_TOKEN=$MY_TOKEN vault read database/roles/role-handson-2
+Key                      Value
+---                      -----
+creation_statements      [CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON handson.product TO '{{name}}'@'%';]
+db_name                  mysql-handson-db
+default_ttl              1h
+max_ttl                  24h
+renew_statements         []
+revocation_statements    []
+rollback_statements      []
+```
+・Windows
+```
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault list database/roles
+Keys
+----
+role-handson
+role-handson-2
+role-handson-3
+
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault read database/roles/role-handson
+Error reading database/roles/role-handson: Error making API request.
+
+URL: GET http://127.0.0.1:8200/v1/database/roles/role-handson
+Code: 403. Errors:
+
+* 1 error occurred:
+	* permission denied
+
+PS > $env:VAULT_TOKEN = $env:MY_TOKEN vault read database/roles/role-handson-2
 Key                      Value
 ---                      -----
 creation_statements      [CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON handson.product TO '{{name}}'@'%';]
