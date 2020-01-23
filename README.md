@@ -7,7 +7,7 @@
 ## Pre-requisite
 
 * 環境
-	* macOS or Linux
+	* macOS or Linux or Windows
 
 * ソフトウェア
 	* Vault
