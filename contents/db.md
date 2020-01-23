@@ -18,11 +18,19 @@ Vaultはデフォルトでは以下のようなDatabaseに対応しています�
 
 KVと同様`database`シークレットエンジンを`enable`します。
 
+・macOS
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault secrets enable -path=database database
 Success! Enabled the database secrets engine at: database/
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault secrets enable -path=database database
+Success! Enabled the database secrets engine at: database/
+```
+
 マウントされた`database/`のエンドポイントを使うことでデータベースシークレットエンジンに対する様々な操作が可能です。
 
 ## Databaseの動的シークレットの発行
@@ -38,12 +46,14 @@ Success! Enabled the database secrets engine at: database/
 
 ローカルのDocker上でMySQLを起動してください。
 
+・macOS , Windows
 ```shell
 $ docker run --name mysql -e MYSQL_ROOT_PASSWORD=rooooot -p 3306:3306 -d mysql:5.7.22
 ```
 
 rootでログインをしたら、サンプルのデータを投入します。パスワードは`rooooot`です。
 
+・macOS , Windows
 ```shell
 $ mysql -u root -p -h127.0.0.1
 ```
@@ -59,6 +69,7 @@ mysql> insert into products (id, name, price) values (1, "Nice hoodie", "1580");
 
 <details><summary>Dockerではなくローカルで起動の場合はこちら</summary>
 
+・macOS
 ```console
 $ sudo mysql.server start
 Password:
@@ -66,6 +77,10 @@ Starting MySQL
 .Logging to '/usr/local/var/mysql/Takayukis-MacBook-Pro.local.err'.
  SUCCESS!
  ```
+・Windows
+```
+mysqld を起動してください。
+```
 
 > rootユーザのパスワードが設定されていない場合、以下のコマンドで変更してください。
 > ```console
@@ -84,6 +99,8 @@ Starting MySQL
 > ```
 
 ログインを試してみてください。
+
+・macOS , Windows
 ```console
 $ mysql -u root -p
 ```
@@ -93,6 +110,7 @@ $ mysql -u root -p
 
 まずはデータベースへのコネクションの設定をVaultに行います。これ以降Vaultはこのパラメータを使ってユーザを払い出します。そのため強い権限のユーザを登録する必要があります。
 
+・macOS , Windows
 ```shell
 $ vault write database/config/mysql-handson-db \
   plugin_name=mysql-legacy-database-plugin \
@@ -119,6 +137,7 @@ $ vault write database/config/mysql-handson-db \
 
 次にロールの定義をします。
 
+・macOS , Windows
 ```shell
 $ vault write database/roles/role-handson \
   db_name=mysql-handson-db \
@@ -127,6 +146,7 @@ $ vault write database/roles/role-handson \
   max_ttl="24h"
 ```
 
+・macOS , Windows
 ```console
 $ vault list database/roles                         
 Keys
@@ -136,6 +156,7 @@ role-handson
 
 次に`/database/creds`のエンドポイントを使って、ロール名`role-handson`に基づいたシークレットを発行します。このエンドポイントが使われない限りシークレットは発行されません。通常この処理はクライアントから実行します。
 
+・macOS , Windows
 ```console
 $ vault read database/creds/role-handson
 Key                Value
@@ -151,6 +172,7 @@ username           v-role-YpuDx1rjz
 
 次に発行したユーザを使ってMySQLサーバにアクセスしてみます。
 
+・macOS , Windows
 ```console 
 $ mysql -u <USERNAME_GEN_BY_VAULT>  -h 127.0.0.1 -p handson
 Enter password: <PASSWORD__GEN_BY_VAULT>
@@ -220,6 +242,7 @@ mysql> show tables;
 
 次は該当のテーブルだけにアクセスできるロールを作ってみましょう。
 
+・macOS , Windows
 ```shell 
 $ vault write database/config/mysql-handson-db \
   plugin_name=mysql-legacy-database-plugin \
@@ -229,6 +252,7 @@ $ vault write database/config/mysql-handson-db \
   password="rooooot"
 ```
 
+・macOS , Windows
 ```shell
 $ vault write database/roles/role-handson-2 \
   db_name=mysql-handson-db \
@@ -241,6 +265,7 @@ $ vault write database/roles/role-handson-2 \
 
 このロールを使ってユーザを発行してログインしてみます。
 
+・macOS , Windows
 ```console
 $ vault read database/creds/role-handson-2
 Key                Value
@@ -285,6 +310,7 @@ mysql> show databases;
 
 一つはTTLを設定した自動破棄です。短いTTLを設定した新しいロールを作ってみます。
 
+・macOS , Windows
 ```shell
 $ vault write database/config/mysql-handson-db \
   plugin_name=mysql-legacy-database-plugin \
@@ -306,6 +332,7 @@ Success! Data written to: database/roles/role-handson
 
 このロールを利用してShort Livedなユーザを発行します。
 
+・macOS , Windows
 ```console
 vault read database/creds/role-handson-3
 Key                Value
@@ -319,6 +346,7 @@ username           v-role-bnsYTFQAj
 
 `lease_duration`が設定したTTLの120秒になっています。これを使ってまずは試しにログインしてみます。
 
+・macOS , Windows
 ```console
 $ mysql -u <USERNAME_GEN_BY_VAULT> -p           
 Enter password: <PASSWORD__GEN_BY_VAULT>
@@ -340,6 +368,7 @@ Bye¥
 
 30秒後に再度ログインします。
 
+・macOS , Windows
 ```console
 $ mysql -u <USERNAME_GEN_BY_VAULT> -p        
 Enter password: <PASSWORD__GEN_BY_VAULT>
@@ -350,6 +379,7 @@ ERROR 1045 (28000): Access denied for user 'v-role-bnsYTFQAj'@'localhost' (using
 
 2つ目の方法は`revoke`コマンドを使って明示的に破棄する方法です。`role-handson-2`のロールを使って新規のユーザを払い出します。払い出された`lease_id`をメモっておいてください。revokeの際に使用します。
 
+・macOS , Windows
 ```console
 $ vault read database/creds/role-handson-2
 Key                Value
@@ -379,6 +409,7 @@ mysql>
 
 `revoke`コマンドを実行してみます。
 
+・macOS , Windows
 ```console
 $ vault lease revoke database/creds/role-handson-2/JSnf6zV2jTrRJmI66Hfz189K
 All revocation operations queued successfully!
@@ -398,6 +429,7 @@ VaultにはRootユーザの権限を持たせる必要があるため、Rootユ�
 
 まず、`root_rotation_statements`のパラメータをコンフィグに追加してローテーションのAPIが呼ばれた時に実施する処理を記述します。
 
+・macOS , Windows
 ```shell
 $ vault write database/config/mysql-handson-db \
   plugin_name=mysql-legacy-database-plugin \
@@ -410,6 +442,7 @@ $ vault write database/config/mysql-handson-db \
 
 その後、`rotate-root`のAPIを実行するだけです。
 
+・macOS , Windows
 ```console
 $ vault write -force database/rotate-root/mysql-handson-db
 Success! Data written to: database/rotate-root/mysql-handson-db
