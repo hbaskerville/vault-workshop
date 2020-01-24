@@ -20,6 +20,7 @@ Table of Contents
 
 その他のシークレットエンジンと同様、EaaSを利用する際は`Transit`というシークレットエンジンを`enabled`にします。
 
+・macOS , Windows
 ```console
 $ vault secrets enable -path=transit transit
 Success! Enabled the transit secrets engine at: transit/
@@ -49,6 +50,7 @@ Transitが有効になりました。Transitには大きく
 
 `myimportantpassword`というパスワードを暗号化してみます。
 
+・macOS , Windows
 ```console
 $ base64 <<< "myimportantpassword"
 bXlpbXBvcnRhbnRwYXNzd29yZAo=
@@ -56,6 +58,7 @@ bXlpbXBvcnRhbnRwYXNzd29yZAo=
 
 これを`transit/encrypt/`のエンドポイントを使って暗号化キーを作り、暗号化します。`my-encrypt-key`は暗号化キーの名前です。
 
+・macOS , Windows
 ```console
 $ vault write transit/encrypt/my-encrypt-key plaintext=bXlpbXBvcnRhbnRwYXNzd29yZAo=
 Key           Value
@@ -63,13 +66,20 @@ Key           Value
 ciphertext    vault:v1:WputNlwLdegpFARr+OL8Az/UmDRCWsVL3ytVf/AUc9tFHt4YD1NOnfd4iSocUfG5
 ```
 
+・macOS
 ```shell
 $ export CTEXT_V1=vault:v1:WputNlwLdegpFARr+OL8Az/UmDRCWsVL3ytVf/AUc9tFHt4YD1NOnfd4iSocUfG5
 ```
+・Windows
+```shell
+PS > $env:CTEXT_V1 = "vault:v1:WputNlwLdegpFARr+OL8Az/UmDRCWsVL3ytVf/AUc9tFHt4YD1NOnfd4iSocUfG5"
+```
+
 この暗号化の機能はbase64にさえ変換してしまえば画像など様々な形式のデータを暗号化することができます。
 
 次に復号化をしてみます。復号化は`transit/decrypt/`のエンドポイントを使います。
 
+・macOS , Windows
 ```console
 $ vault write transit/decrypt/my-encrypt-key ciphertext=$CTEXT_V1
 Key          Value
@@ -80,6 +90,7 @@ plaintext    bXlpbXBvcnRhbnRwYXNzd29yZAo=
 
 `plaintext`としてBase64のコードが表示されました。これをデコードしてパスワードを取り出してみます。
 
+・macOS , Windows
 ```console
 $ base64 --decode <<< "bXlpbXBvcnRhbnRwYXNzd29yZAo="
 myimportantpassword
@@ -104,6 +115,7 @@ Transitでは`transit/keys/<KEYNAME>/rotate`と`transit/rewrap/<KEYNMAME>`とい
 
 `rotate`はキーの更新、`rewarp`は古いデータを新しいキーで再暗号化するためのエンドポイントです。
 
+・macOS , Windows
 ```console
 $ vault write -f transit/keys/my-encrypt-key/rotate
 $ vault read transit/keys/my-encrypt-key
@@ -128,6 +140,7 @@ type                      aes256-gcm96
 
 バージョンが2に変わりました。`min_decryption_version`はこのデータが復号化できる最小のキーのバージョンを示しています。まずはこの状態で新しいデータを暗号化してみましょう。
 
+・macOS , Windows
 ```console
 $ base64 <<< "myimportantpassword-v2"
 bXlpbXBvcnRhbnRwYXNzd29yZC12Mgo=
@@ -139,12 +152,18 @@ Key           Value
 ciphertext    vault:v2:93WEsl7Q7UM/eWHGZP+N9PmOEqXPYpnpVeBx21APu7pT1MOCJElJ7AkbiNgdr0gVOALw
 ```
 
+・macOS , Windows
 ```shell
 $ export CTEXT_V2=vault:v2:93WEsl7Q7UM/eWHGZP+N9PmOEqXPYpnpVeBx21APu7pT1MOCJElJ7AkbiNgdr0gVOALw
+```
+・Windows
+```shell
+PS > $env:CTEXT_V2 = "vault:v2:93WEsl7Q7UM/eWHGZP+N9PmOEqXPYpnpVeBx21APu7pT1MOCJElJ7AkbiNgdr0gVOALw"
 ```
 
 新しいデータはv2のキーで暗号化復号化され、それ以前のデータは古いキーで復号化されます。v1とv2で暗号化したデータをそれぞれ復号化してみます。
 
+・macOS , Windows
 ```console
 $ vault write transit/decrypt/my-encrypt-key ciphertext=$CTEXT_V1
 
@@ -161,6 +180,7 @@ plaintext    bXlpbXBvcnRhbnRwYXNzd29yZC12Mgo=
 
 V1, V2のデータ共に複合化可能です。この状態でいずれv2の新しいキーに全てのデータを移行したいです。そのためには`rewrap`という操作を行い、古いデータの更新(再暗号化)を行います。`ciphertext`にはv1のデータを入れてください。
 
+・macOS , Windows
 ```console
 $ vault write transit/rewrap/my-encrypt-key ciphertext=$CTEXT_V1
 
@@ -170,10 +190,16 @@ ciphertext    vault:v2:pymUK9PJQ3KYXSw7uNj/lcTMOwfNav2t3pP52jAuQWQ6bTHNd9n/3tX4Z
 ```
 これでv1で暗号化したデータをv2で暗号化しました。次に、`min_decryption_version`を更新しv1のキーを無効化し、利用できないようにします。
 
+・macOS
 ```shell
 export CTEXT_V1_V2=vault:v2:pymUK9PJQ3KYXSw7uNj/lcTMOwfNav2t3pP52jAuQWQ6bTHNd9n/3tX4Zdc/IPLt
 ```
+・Windows
+```shell
+PS > $env:CTEXT_V1_V2 = "vault:v2:pymUK9PJQ3KYXSw7uNj/lcTMOwfNav2t3pP52jAuQWQ6bTHNd9n/3tX4Zdc/IPLt"
+```
 
+・macOS , Windows
 ```console
 $ vault write  transit/keys/my-encrypt-key/config min_decryption_version=2
 
@@ -206,12 +232,14 @@ Vaultでは暗号化キーを生成する際にこのConvergent暗号化のパ�
 
 まずは新しいキーを生成してみましょう。
 
+・macOS , Windows
 ```shell
 $ vault write transit/keys/convergent-key type="chacha20-poly1305" convergent_encryption=true derived=true
 ```
 
 Convergentに対応しているタイプのアルゴリズムを指定しています。この他にもあるので[こちら](https://www.vaultproject.io/api/secret/transit/index.html#type)で確認してみてください。
 
+・macOS , Windows
 ```console
 $ vault read transit/keys/convergent-key
 Key                              Value
@@ -240,6 +268,7 @@ Converntがtrueになっているキーが生成したことがわかります�
 
 これによってクライアントが同一の暗号文を保持したとしても`context`パラメータを指定しないと復号化が不可能となり、より安全にデータを扱うことができます。
 
+・macOS , Windows
 ```console
 $ vault write transit/encrypt/convergent-key plaintext=$(base64 <<< "myimportantpassword") context=$(base64 <<< "c2FtcGxxxx9udGV4dA")
 
@@ -250,6 +279,7 @@ ciphertext    vault:v1:NuH3WBB956hNZOnPYZqo5lb86bZ5LN1BTKlmuZ78ZGzB2HYdcl9iAbh5h
 
 `Value`で出力される暗号文をコピーし、復号化してみましょう。
 
+・macOS , Windows
 ```console
 $ base64 --decode <<< $(vault write -format=json transit/decrypt/convergent-key ciphertext="vault:v1:NuH3WBB956hNZOnPYZqo5lb86bZ5LN1BTKlmuZ78ZGzB2HYdcl9iAbh5hdxCC/1k" context=$(base64 <<< "c2FtcGxxxx9udGV4dA") | jq -r '.data.plaintext')
 
@@ -258,6 +288,7 @@ myimportantpassword
 
 復号化出来ました。試しに`context`に別の値を入れてみましょう。
 
+・macOS , Windows
 ```console
 $ base64 --decode <<< $(vault write -format=json transit/decrypt/convergent-key ciphertext="vault:v1:NuH3WBB956hNZOnPYZqo5lb86bZ5LN1BTKlmuZ78ZGzB2HYdcl9iAbh5hdxCC/1k" context=$(base64 <<< "samplecontext") | jq -r '.data.plaintext')
 
@@ -273,6 +304,7 @@ Code: 400. Errors:
 
 最後に試しにConvergentが設定されているか再度同じ平文を暗号化してみます。
 
+・macOS , Windows
 ```console
 $ vault write transit/encrypt/convergent-key plaintext=$(base64 <<< "myimportantpassword") context=$(base64 <<< "c2FtcGxxxx9udGV4dA")
 
@@ -309,6 +341,7 @@ create table users (id varchar(50), username varchar(50), password varchar(200),
 
 まずはデータベース側です。コンフィグをアップデートし、`role-demoapp`というロールを許可します。
 
+・macOS , Windows
 ```shell
 $ vault write database/config/mysql-handson-db \
   plugin_name=mysql-legacy-database-plugin \
@@ -320,6 +353,7 @@ $ vault write database/config/mysql-handson-db \
 
 ロールを作成します。`handson.users`のテーブルに対して`SELECT`, `INSERT`の権限のあるロールです。
 
+・macOS , Windows
 ```shell
 $ vault write database/roles/role-demoapp \
   db_name=mysql-handson-db \
@@ -330,6 +364,7 @@ $ vault write database/roles/role-demoapp \
 
 動作を確認しておきましょう。ここで生成したユーザ名パスワードは利用せず、実際にこの操作はアプリから実施することになります。
 
+・macOS , Windows
 ```console
 $ vault read database/creds/role-demoapp
 
@@ -344,6 +379,8 @@ username           v-role-FWRN0zpOp
 
 次にVault認証用のロールです。ここで作るポリシーは`AppRole`の認証で付与されるトークンの権限となります。以下のようにポリシーの定義ファイルを作成してください。
 
+`policy-vault.hcl`
+・macOS
 ```hcl
 $ cat > policy-vault.hcl <<EOF
 # Enable transit secrets engine
@@ -362,12 +399,32 @@ path "transit/*" {
 }
 EOF
 ```
+・Windows
+```hcl
+# Enable transit secrets engine
+path "sys/mounts/transit" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# To read enabled secrets engines
+path "sys/mounts" {
+  capabilities = [ "read" ]
+}
+
+# Manage the transit secrets engine
+path "transit/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+```
 
 AppRoleが有効になっていない方は下記のコマンドで有効化しましょう。
+
+・macOS , Windows
 ```shell
 $ vault auth enable approle
 ```
 
+・macOS , Windows
 ```console
 $ vault policy write vault-policy policy-vault.hcl
 $ vault write auth/approle/role/vault-approle policies=vault-policy period=1h
@@ -375,6 +432,7 @@ $ vault write auth/approle/role/vault-approle policies=vault-policy period=1h
 
 これで準備は完了です。アプリをクローンして、起動してみましょう。`YOUR_ROOT_TOKEN`はご自身のRoot Tokenです。
 
+・macOS , Windows
 ```console
 $ export ROOT_TOKEN=<YOUR_ROOT_TOKEN>
 $ git clone https://github.com/tkaburagi/spring-vault-transit-demo
