@@ -12,13 +12,20 @@ AWSシークレットエンジンではIAMポリシーの定義に基づいたAW
 
 まずシークレットエンジンをenableにします。
 
+・macOS
 ```shell
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault secrets enable aws
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault secrets enable aws
+```
 
 次にVaultがAWSのAPIを実行するために必要なキーを登録します。
 
+・macOS , Windows
 ```shell
 $ vault write aws/config/root \
     access_key=************ \
@@ -30,6 +37,7 @@ $ vault write aws/config/root \
 
 次にロールを登録します。このロールがVaultから払い出されるユーザの権限と紐付きます。ロールは複数登録することが可能です。今回はまずは`credential_type`に`iam_user`を指定しています。
 
+・macOS , Windows
 ```shell
 $ vault write aws/roles/my-role \
     credential_type=iam_user \
@@ -49,9 +57,25 @@ EOF
 
 別端末を開いて`watch`コマンドでユーザのリストを監視します。
 
+・macOS
 ```console
 $ watch -n 1 aws iam list-users
 
+{
+    "Users": [
+        {
+            "UserName": "tykaburagi",
+            "Path": "/",
+            "CreateDate": "2019-06-12T07:13:45Z",
+            "UserId": "****************",
+            "Arn": "****************"
+        }
+    ]
+}
+```
+・Windows
+```shell
+PS >  while ($true -eq $true) { aws iam list-users ;  sleep 1 ; clear}
 {
     "Users": [
         {
@@ -83,6 +107,7 @@ $ watch -n 1 aws iam list-users
 
 ロールを使ってAWSのキーを発行してみましょう。
 
+・macOS , Windows
 ```console
 $ vault read aws/creds/my-role
 
@@ -121,6 +146,7 @@ security_token     <nil>
 
 このユーザを使って動作を確認してみましょう。
 
+・macOS , Windows
 ```console
 $ aws configure
 
@@ -132,6 +158,7 @@ Default output format [json]:
 
 Vaultから払い出されたユーザのシークレットを入力して下さい。新しい端末を立ち上げて以下のコマンドを実行します。
 
+・macOS , Windows
 ```console
 $ aws ec2 describe-instances
 
@@ -149,6 +176,7 @@ Roleに設定した通りS3に対する操作のみ可能なことがわかり�
 
 aws cliのユーザを元のユーザに切り替えておきます。
 
+・macOS
 ```console
 $ aws configure
 
@@ -178,11 +206,42 @@ $ watch -n 1 aws iam list-users
     ]
 }
 ```
+・Windows
+```console
+PS > aws configure
+
+AWS Access Key ID [****************62E7]: ****************
+AWS Secret Access Key [****************WF35]: ****************
+Default region name [ap-northeast-1]:
+Default output format [json]:
+
+PS >  while ($true -eq $true) { aws iam list-users ;  sleep 1 ; clear}
+
+{
+    "Users": [
+        {
+            "UserName": "tykaburagi",
+            "Path": "/",
+            "CreateDate": "2019-06-12T07:13:45Z",
+            "UserId": "****************",
+            "Arn": "****************"
+        },
+        {
+		    "UserName": "vault-root-my-role-1566109640-4907",
+		    "Path": "/",
+		    "CreateDate": "2019-08-18T06:27:24Z",
+		    "UserId": "AIDAZLVKZYEN6HOTBA74D",
+		    "Arn": "arn:aws:iam::643529556251:user/vault-root-my-role-1566109640-4907"
+        }
+    ]
+}
+```
 
 シンプルな手順でユーザが発行できることがわかりましたが、次はRevoke(破棄)を試してみます。Revokeにはマニュアルと自動の2通りの方法があります。
 
 まずはマニュアルでの実行手順です。`vault read aws/creds/my-role`を実行した際に発行された`lease_id`をコピーしてください。
 
+・macOS , Windows
 ```shell
 $ vault lease revoke aws/creds/my-role/<LEASE_ID>
 ```
@@ -205,10 +264,12 @@ $ vault lease revoke aws/creds/my-role/<LEASE_ID>
 
 次に自動Revokeです。デフォルトではTTLが`765h`になっています。これは数分にしてみましょう。
 
+・macOS , Windows
 ```shell
 vault write aws/config/lease lease=2m lease_max=10m
 ```
 
+・macOS , Windows
 ```console
 $ vault read aws/config/lease
 
@@ -220,6 +281,7 @@ lease_max    10m0s
 
 それではこの状態でユーザを発行します。
 
+・macOS , Windows
 ```console
 $ vault read aws/creds/my-role
 
