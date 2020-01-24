@@ -29,9 +29,15 @@ GCPのコンソールにログインして、`Navigation Menu`から`IAM&Admin` 
 
 次にVaultのセットアップです。以下のコマンドでGCPシークレットエンジンを有効化しましょう。
 
+・macOS
 ```shell
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault secrets enable gcp
+```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault secrets enable gcp
 ```
 
 最後に`gcloud`コマンドをインストールします。[こちら](https://cloud.google.com/sdk/)からインストールしてください。
@@ -49,7 +55,7 @@ $ vault secrets enable gcp
 
 まずは先ほど発行したService AccountのキーをVaultのコンフィグとして登録します。`KEY_JSON.json`は自身のファイル名に置き換えてください。
 
-
+・macOS , Windows
 ```shell
 $ vault write gcp/config credentials=@KEY_JSON.json
 ```
@@ -67,6 +73,8 @@ Vaultは内部的にこの鍵を使ってGCPのAPIを実行して動的に新し
 
 ここではService Accountを使ってみましょう。`bindings`は権限の設定です。まずは自身のプロジェクトに対して`viewer`の権限を設定してみましょう。
 
+`mybindings.hcl`ファイルを作成します。
+・macOS
 ```shell
 $ cat << EOF > mybindings.hcl
 resource "//cloudresourcemanager.googleapis.com/projects/<PROJECT_ID> {
@@ -74,9 +82,16 @@ resource "//cloudresourcemanager.googleapis.com/projects/<PROJECT_ID> {
 }
 EOF
 ```
+・Windows
+```
+resource "//cloudresourcemanager.googleapis.com/projects/<PROJECT_ID> {
+  roles = ["roles/viewer"]
+}
+```
 
 これを`gcp/roleset/ROLE_NAME`の`bindings`で指定します。ここでは`pj-viewer`という名前でロールセットを作成します。
 
+・macOS , Windows
 ```shell
 $ vault write gcp/roleset/pj-viewer \
     project="peak-elevator-237302" \
@@ -86,6 +101,7 @@ $ vault write gcp/roleset/pj-viewer \
 
 作成したロールセットの一覧は以下のように確認します。
 
+・macOS , Windows
 ```console
 $ vault list gcp/rolesets
 Keys
@@ -95,6 +111,7 @@ pj-viewer
 
 内容を確認したい時はreadします。
 
+・macOS , Windows
 ```console
 $ vault read gcp/roleset/pj-viewer
 Key                      Value
@@ -113,12 +130,14 @@ service_account_email    vaultpj-viewer-1575172760@peak-elevator-237302.iam.gser
 
 それでは実際にキーを発行してみましょう。
 
+・macOS , Windows
 ```console
 $ vault read gcp/key/pj-viewer -format=json | jq -r '.data.private_key_data' > gcp.key.encoded
 ```
 
 `gcp.key.encoded`にエンコードされたキーが出力されているでしょう。
 
+・macOS , Windows
 ```console
 $ base64 -D gcp.key.encoded > gcp.key
 ```
@@ -127,12 +146,14 @@ gcp.keyの中身を確認してください。これでキーが作成されま�
 
 このキーを使ってログインしてみましょう。
 
+・macOS , Windows
 ```shell
 $ gcloud auth activate-service-account  --key-file=gcp.key
 ```
 
 ログインしたら権限を試してみましょう。
 
+・macOS , Windows
 ```shell
 $ gcloud iam service-accounts list
 
@@ -143,6 +164,7 @@ $ gcloud compute disk-types describe local-ssd
 
 これらは`viewer`の権限で実行することが出来るでしょう。一方以下のコマンドはエラーが発生するはずです。
 
+・macOS , Windows
 ```console
 $ gcloud iam service-accounts create auser-vault-handson
 ERROR: (gcloud.iam.service-accounts.create) User [vaultpj-viewer-1575172760@peak-elevator-237302.iam.gserviceaccount.com] does not have permission to access project [peak-elevator-237302] (or it may not exist): Permission iam.serviceAccounts.create is required to perform this operation on project projects/peak-elevator-237302.
@@ -154,6 +176,7 @@ ERROR: (gcloud.iam.service-accounts.create) User [vaultpj-viewer-1575172760@peak
 
 デフォルトだと768hの有効期限ですが、最低限の期間に設定し、それ以降は無効にすることがベストです。まずは準備をします。
 
+・macOS , Windows
 ```console
 $ gcloud iam service-accounts list
 NAME                                                                EMAIL                                                                        DISABLED
@@ -175,6 +198,7 @@ KEY_ID                                    CREATED_AT            EXPIRES_AT
 
 まずは手動を試してみます。先ほどと同様にシークレットを発行します。`lease_id`はあとで使うのでメモしておいてください。これを使ってシークレットの`renew`, `revoke`などのライフサイクルを管理します。
 
+・macOS , Windows
 ```console
 $ vault read gcp/key/pj-viewer
 Key                 Value
@@ -197,6 +221,7 @@ a07f4979f3e8a40350418325002b1956cc46cf48  2019-12-01T04:02:58Z  2029-11-28T04:02
 
 これを削除してみます。先ほどメモしたLease IDを引数に、`revoke`コマンドを実行するだけです。
 
+・macOS , Windows
 ```shell
 $ vault lease revoke <LEASE_ID>
 ```
@@ -214,6 +239,7 @@ KEY_ID                                    CREATED_AT            EXPIRES_AT
 
 `watch`の出力はそのままにしておいてください。TTLの設定をしてみましょう。
 
+・macOS , Windows
 ```console
 $ vault write gcp/config ttl=2m max_ttl=10m
 $ vault read gcp/config
@@ -226,6 +252,7 @@ ttl        2m
 
 TTLを2分に設定しました。`max_ttl`は`renew`というオペレーションで延長できる最大の有効期限です。
 
+・macOS , Windows
 ```console
 $ vault read gcp/key/pj-viewer
 Key                 Value
