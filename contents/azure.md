@@ -10,19 +10,36 @@ Azureシークレットエンジンではロールの定義に基づいたAzure�
 
 まずシークレットエンジンをenableにします。
 
+・macOS
 ```shell
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault secrets enable azure
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault secrets enable azure
+```
 
 次にVaultがAzureのAPIを実行するために必要なキーを登録します。
 
+・macOS
 ```shell
-export SUB_ID="***********"
-export TENANT_ID="***********"
-export CLIENT_ID="***********"
-export CLIENT_SECRET="***********"
+$ export SUB_ID="***********"
+$ export TENANT_ID="***********"
+$ export CLIENT_ID="***********"
+$ export CLIENT_SECRET="***********"
+```
+・Windows
+```shell
+PS > $env:SUB_ID="***********"
+PS > $env:TENANT_ID="***********"
+PS > $env:CLIENT_ID="***********"
+PS > $env:CLIENT_SECRET="***********"
+```
 
+・macOS , Windows
+```shell
 $ vault write azure/config \
         subscription_id="${SUB_ID}" \
         client_id="{CLIENT_ID}" \
@@ -34,6 +51,7 @@ $ vault write azure/config \
 
 次にロールを登録します。このロールがVaultから払い出されるユーザの権限と紐付きます。ロールは複数登録することが可能です。今回はまずは全てのリソースに対するRead Onlyのロールを作成しています。
 
+・macOS
 ```shell
 $ vault write azure/roles/reader azure_roles=-<<EOF
     [
@@ -44,12 +62,37 @@ $ vault write azure/roles/reader azure_roles=-<<EOF
     ]
 EOF
 ```
+・Windows
+`azure_roles.hcl`
+```shell
+    [
+      {
+        "role_name": "Reader",
+        "scope": "/subscriptions/${SUB_ID}/resourceGroups/vault-resource-group"
+      }
+    ]
+
+PS > vault write azure/roles/reader azure_roles=azure_roles.hcl
+```
 
 別端末を開いて`watch`コマンドでユーザのリストを監視します。
 
+・macOS
 ```console
 $ export TENANT_ID="***********"
 $ watch -n az ad sp list --query "[].{id:appId, tenant:appOwnerTenantId}" | grep -B 1 ${TENANT_ID}
+
+    "id": "4c4411ee-9654-4acf-b242-*******************",
+    "tenant": "a67e8730-8fe4-453a-a239-e62d4df0a815"
+--
+    "id": "80343551-a8cf-494a-9b40-*******************",
+    "tenant": "a67e8730-8fe4-453a-a239-e62d4df0a815"
+--
+```
+・Windows
+```console
+PS > $env:TENANT_ID = "***********"
+PS > while ($true -eq $true) { az ad sp list --query "[].{id:appId, tenant:appOwnerTenantId}" | find $env:TENANT_ID ;  sleep 1 ; clear}
 
     "id": "4c4411ee-9654-4acf-b242-*******************",
     "tenant": "a67e8730-8fe4-453a-a239-e62d4df0a815"
@@ -72,6 +115,7 @@ $ watch -n az ad sp list --query "[].{id:appId, tenant:appOwnerTenantId}" | grep
 
 元の端末に戻り、ロールを使ってAzureのシークレットを発行してみましょう。
 
+・macOS , Windows
 ```console
 $ vault read azure/creds/reader
 
@@ -106,6 +150,7 @@ client_secret      *******************
 
 をそれぞれ入力します。
 
+・macOS , Windows
 ```shell
 $  az login --service-principal \
  -u "*****" \
@@ -115,6 +160,7 @@ $  az login --service-principal \
 
 新しい端末を立ち上げて以下のコマンドを実行します。
 
+・macOS , Windows
 ```console
 $ az network vnet list
 
@@ -132,6 +178,7 @@ Roleに設定した通りReadのオペレーションを行うことができま
 
 az cliのユーザを元のユーザに切り替えておきます。`watch`を実行している端末を一度`ctrl+c`で抜けて以下のコマンドでユーザでログインをし直します。
 
+・macOS , Windows
 ```shell
 $  az login --service-principal \
     -u "${CLIENT_ID}" \
@@ -156,6 +203,7 @@ $ watch -n az ad sp list --query "[].{id:appId, tenant:appOwnerTenantId}" | grep
 
 まずはマニュアルでの実行手順です。`vault read azure/creds/reader`を実行した際に発行された`lease_id`をコピーしてください。
 
+・macOS , Windows
 ```shell
 $ vault lease revoke azure/creds/reader/<LEASE_ID>
 ```
@@ -173,6 +221,7 @@ $ vault lease revoke azure/creds/reader/<LEASE_ID>
 
 次に自動Revokeです。デフォルトではTTLが`765h`になっています。これは数分にしてみましょう。
 
+・macOS
 ```shell
 vault write azure/roles/reader ttl=2m max_ttl=10m azure_roles=-<<EOF
     [
@@ -183,7 +232,20 @@ vault write azure/roles/reader ttl=2m max_ttl=10m azure_roles=-<<EOF
     ]
 EOF
 ```
+・Windows
+`azure_roles.hcl`
+```shell
+    [
+      {
+        "role_name": "Reader",
+        "scope": "/subscriptions/${SUB_ID}/resourceGroups/vault-resource-group"
+      }
+    ]
+    
+PS > vault write azure/roles/reader ttl=2m max_ttl=10m azure_roles=azure_roles.hcl
+```
 
+・macOS , Windows
 ```console
 $ vault read azure/roles/reader
 Key                      Value
@@ -197,6 +259,7 @@ ttl                      2m
 
 それではこの状態でユーザを発行します。
 
+・macOS , Windows
 ```console
 $ vault read azure/creds/reader
 Key                Value
