@@ -12,6 +12,7 @@ Vaultで扱うことの出来る「シークレット」は多岐に渡ります
 
 まずはPKI Secret Engineを有効化します。ここではVaultをRoot、Intermediateの両方として扱うため、別のパスでそれぞれEnableしていきます。
 
+・macOS , Windows
 ```shell
 $ vault secrets enable -path="pki_root" pki
 $ vault secrets enable -path="pki_intermediate" pki
@@ -21,14 +22,22 @@ $ vault secrets enable -path="pki_intermediate" pki
 
 `/pki/root/generate/:type`のエンドポイントで自己署名のルートCA証明書とプライベートキーを発行します。
 
+・macOS
 ```shell
 $ export DOMAIN=vault-handson.lab
 
 $ vault write pki_root/root/generate/internal common_name="${DOMAIN} Root CA" ttl=24h > ca_root.crt.pem
 ```
+・Windows
+```shell
+PS > $env:DOMAIN = "vault-handson.lab"
+
+PS > vault write pki_root/root/generate/internal common_name="$env:DOMAIN Root CA" ttl=24h > ca_root.crt.pem
+```
 
 以下のコマンドでRoot CAが作成されたことが確認できます。
 
+・macOS , Windows
 ```console
 $ curl -s --header "X-Vault-Token: <VAULT_TOKEN>" http://127.0.0.1:8200/v1/pki_root/ca/pem
 -----BEGIN CERTIFICATE-----
@@ -40,6 +49,7 @@ BQAwJDEiMCAGA1UEAxMZdmF1bHQtaGFuZHNvbi5sYWIgUm9vdCBDQTAeFw0xOTEy
 
 次に証明書wp発行するエンドポイントと証明書失効リストを配信するためのエンドポイントを設定します。
 
+・macOS , Windows
 ```shell
 $ vault write pki_root/config/urls \
 issuing_certificates="http://127.0.0.1:8200/v1/pki_root/ca" \
@@ -48,6 +58,7 @@ crl_distribution_points="http://127.0.0.1:8200/v1/pki_root/crl"
 
 次にIntermediate側の設定です。まずはCSR(証明書署名リクエスト)の作成です。`intermediate/generate/:type`のエンドポイントです。
 
+・macOS , Windows
 ```shell
 $ vault write -format=json pki_intermediate/intermediate/generate/internal \
 common_name="${DOMAIN} Intermediate Authority" ttl="12h" \
@@ -56,6 +67,7 @@ common_name="${DOMAIN} Intermediate Authority" ttl="12h" \
 
 `pki_intermediate.csr`ファイルを見るとCSRが生成されていることがわかるでしょう。次にこのCSRに対して、先ほど作ったRoot CAを使ってサインをしていきます。
 
+・macOS , Windows
 ```shell
 $ vault write -format=json pki_root/root/sign-intermediate \
 csr=@pki_intermediate.csr \
@@ -65,6 +77,7 @@ format=pem_bundle ttl="12h" \
 
 Root CAによってCSRがサインされ、中間CAとしての証明書が発行されました。証明書を検証してみましょう。
 
+・macOS , Windows
 ``` shell
 $ openssl x509 -in ca_intermediate.cert.pem -text -noout
 ```
@@ -74,6 +87,7 @@ $ openssl x509 -in ca_intermediate.cert.pem -text -noout
 
 この証明書を中間CAにインポートします。
 
+・macOS , Windows
 ```shell
 $ vault write pki_intermediate/intermediate/set-signed \
 certificate=@ca_intermediate.cert.pem
@@ -81,6 +95,7 @@ certificate=@ca_intermediate.cert.pem
 
 以下のコマンドで確認してみましょう。
 
+・macOS , Windows
 ```console
 $ curl -s --header "X-Vault-Token: <VAULT_TOKEN>" http://127.0.0.1:8200/v1/pki_intermediate/ca/pem
 
@@ -103,6 +118,7 @@ BQAwJDEiMCAGA1UEAxMZdmF1bHQtaGFuZHNvbi5sYWIgUm9vdCBDQTAeFw0xOTEy
 
 などを設定します。下記は`vault-handson.lab`が利用でき、サブドメインを許可する例です。
 
+・macOS , Windows
 ```shell
 $ vault write pki_intermediate/roles/vault-dot-lab \
 allowed_domains="vault-handson.lab" allow_subdomains=true max_ttl="12h"
@@ -110,6 +126,7 @@ allowed_domains="vault-handson.lab" allow_subdomains=true max_ttl="12h"
 
 最後にこのロールを使って証明書を発行しましょう。
 
+・macOS , Windows
 ```shell
 $ vault write pki_intermediate/issue/vault-dot-lab \
 common_name="contents.vault-handson.lab" ttl="24h"
@@ -134,6 +151,7 @@ aws acm import-certificate \
 
 最後にcertificateの出力結果を`server.crt.pem`として保存をして証明書を検証してみます。
 
+・macOS , Windows
 ```shell
 openssl x509 -in server.cert.pem  -text -noout
 ```
