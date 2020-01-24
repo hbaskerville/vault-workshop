@@ -4,7 +4,7 @@
 
 ## Vaultのインストール
 
-[こちら](https://www.vaultproject.io/downloads.html)のWebサイトからご自身のOSに合ったものをダウンロードしてください。
+[こちら](https://www.vaultproject.io/downloads.html)のWebサイトからご自身のOSに合ったものをダウンロード・解凍してください。
 
 ```
 wget https://releases.hashicorp.com/vault/1.3.0/vault_1.3.0_linux_amd64.zip
@@ -19,9 +19,15 @@ chmod +x /usr/local/bin/vault
 
 新しい端末を立ち上げ、Vaultのバージョンを確認します。
 
+・macOS
 ```console
-$ vault -version                                                                       
+$ vault -version 
 Vault v1.1.1+ent ('7a8b0b75453b40e25efdaf67871464d2dcf17a46')
+```
+・Windows
+```shell
+PS > vault.exe -version
+Vault v1.3.1
 ```
 
 これでインストールは完了です。
@@ -30,6 +36,7 @@ Vault v1.1.1+ent ('7a8b0b75453b40e25efdaf67871464d2dcf17a46')
 
 次にVaultサーバを立ち上げ、GenericなシークレットをVaultに保存して取り出してみます。
 
+・macOS
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault server -dev
@@ -59,11 +66,44 @@ seal/unseal the Vault or re-authenticate.
 Unseal Key: CNmWA769OVVTcyOptf3mFDPW5sVHOE4fw0yRnV7Tl74=
 Root Token: s.rAc6mBZgrNwPxSky2dBJkgSd 
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault.exe server -dev
+==> Vault server configuration:
+
+             Api Address: http://127.0.0.1:8200
+                     Cgo: disabled
+         Cluster Address: https://127.0.0.1:8201
+              Listener 1: tcp (addr: "127.0.0.1:8200", cluster address: "127.0.0.1:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "disabled")
+               Log Level: info
+                   Mlock: supported: false, enabled: false
+                 Storage: inmem
+                 Version: Vault v1.2.2
+
+WARNING! dev mode is enabled! In this mode, Vault runs entirely in-memory
+and starts unsealed with a single unseal key. The root token is already
+authenticated to the CLI, so you can immediately begin using Vault.
+
+You may need to set the following environment variable:
+
+PowerShell:
+    $env:VAULT_ADDR="http://127.0.0.1:8200"
+cmd.exe:
+    set VAULT_ADDR=http://127.0.0.1:8200
+
+The unseal key and root token are displayed below in case you want to
+seal/unseal the Vault or re-authenticate.
+
+Unseal Key: vuv9ozqUusLGVOTBekuSlgZ1L6KtNlxQJjyJpihxGOk=
+Root Token: s.DdlXQO9pqjgPNPKfFLFRL7Gi
+```
 
 途中で出力される`Root Token`は後で使いますのでメモしてとっておきましょう。`-dev`モードで起動すると、データーストレージのコンフィグレーション等を行うことなく、プリセットされた設定で手軽に起動することが出来ます。クラスタ構成やデータストレージなど細かな設定が必要な場合には利用しません。また、デフォルトだとデータはインメモリに保存されるため、起動毎にデータが消滅します。
 
 では、先ほど取得したトークンでログインしてみます。
 
+・macOS
 ```console
 $ vault login                                                                                             
 Token (will be hidden):
@@ -81,9 +121,28 @@ token_policies       ["root"]
 identity_policies    []
 policies             ["root"]
 ```
+・Windows
+```shell
+PS > vault.exe login
+Token (will be hidden):
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
+
+Key                  Value
+---                  -----
+token                s.DdlXQO9pqjgPNPKfFLFRL7Gi
+token_accessor       8IrJ0S2TSfpZG3svvzniFF22
+token_duration       ∞
+token_renewable      false
+token_policies       ["root"]
+identity_policies    []
+policies             ["root"]
+```
 
 現在有効になっているシークレットエンジンを見てみます。現在使っているトークンはroot権限と紐づいているため、現在有効になっている全てのシークレットにアクセスすることが可能です。
 
+・macOS , Windows
 ```console
 $ vault secrets list 
 Path          Type         Accessor              Description
@@ -96,6 +155,7 @@ sys/          system       system_b2dfb5a6       system endpoints used for contr
 
 `kv`シークレットエンジンを使って、簡単なシークレットをVaultに保存して取り出してみます。
 
+・macOS , Windows
 ```console
 $ vault kv list secret/                         
 No value found at secret/metadata
@@ -130,6 +190,7 @@ password    p@SSW0d
 
 また、VaultのCLIはAPIへのHTTPSのアクセスをラップしているため、全てのCLIでの操作はAPIへのcurlのリクエストに変換できます。`-output-curl-string`を使うだけです。
 
+・macOS , Windows
 ```console
 $ vault kv list -output-curl-string secret/
 curl -H "X-Vault-Token: $(vault print token)" http://127.0.0.1:8200/v1/kv/metadata?list=true
@@ -139,6 +200,7 @@ curlコマンドを使ったリクエストが表示されました。アプリ�
 
 また、デフォルトではテーブル形式ですが様々なフォーマットで出力を得られます。
 
+・macOS , Windows
 ```console
 $ vault kv get -format=yaml secret/mypassword    
 data:
@@ -166,6 +228,7 @@ $ vault kv get -format=json secret/mypassword
 
 特定のフィールドのデータを抽出することもできます。
 
+・macOS , Windows
 ```console
 $ vault kv get -format=json -field=password secret/mypassword
 "p@SSW0d"
@@ -179,6 +242,7 @@ $ vault kv get -format=json -field=password secret/mypassword
 
 デスクトップに任意のフォルダーを作って、以下のファイルを作成します。ファイル名は`vault-local-config.hcl`とします。`path`は書き換えてください。
 
+・macOS
 ```shell 
 $ mkdir vault-workshop
 $ cd vault-workshop
@@ -195,11 +259,30 @@ listener "tcp" {
 ui = true
 EOF
 ```
+・Windows
+```shell
+PS > mkdir vault-workshop
+PS > cd vault-workshop
+```
+`vault-local-config.hcl`ファイルを以下の内容で作成します。
+```
+storage "file" {
+   path = "/path/to/vault-workshop/vaultdata"
+}
+
+listener "tcp" {
+  address     = "127.0.0.1:8200"
+  tls_disable = 1
+}
+
+ui = true
+```
 
 ここではストレージ、リスナーとUIの最低限の設定をしています。その他にも[様々な設定](https://www.vaultproject.io/docs/configuration/)が出来ます。
 
 ストレージのタイプは複数選択できますが、ここではローカルファイルを使います。実際の運用で可用性などを考慮する場合はConsulなどHAの機能が盛り込まれたストレージを使うべきです。このコンフィグを使ってVaultを再度起動してみましょう。
 
+・macOS , Windows
 ```console
 $ vault server -config vault-local-config.hcl
 WARNING! mlock is not supported on this system! An mlockall(2)-like syscall to
@@ -230,6 +313,7 @@ container.
 
 別の端末を立ち上げて以下のコマンドを実行してください。GUIでも同様のことが出来ますが、このハンズオンでは全てCLIを使います。
 
+・macOS
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault operator init
@@ -241,9 +325,22 @@ Unseal Key 5: e3DwN3SOnSh/boJmCav4Ve8FOD3oSLjwywNwy+P5qrcx
 
 Initial Root Token: s.51du1iIeam79Q5fBRBALVhRB
 ```
+・Windows
+```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
+PS > vault operator init
+Unseal Key 1: E9wz16Q+6K8sHdV0G1IZNw4/xBC3b0lm28Hz0K/MyfM1
+Unseal Key 2: FmP/bBJqArQ30wPDYS8GNfFUKKgUu141LtVNThrX8YyT
+Unseal Key 3: K2zppWuRaDcCCCqb8NznfDw1Fp4bRXwslRoR4eTd7igz
+Unseal Key 4: uxpETuMXmdwPm4AUcrusWwuHvn52A8XfGXPXwRBGajOF
+Unseal Key 5: e3DwN3SOnSh/boJmCav4Ve8FOD3oSLjwywNwy+P5qrcx
+
+Initial Root Token: s.51du1iIeam79Q5fBRBALVhRB
+```
 
 initの処理をすると、Vaultを`unseal`するためのキーと`Initial Root Token`が生成されます。試しにこの状態でログインしてみます。
 
+・macOS , Windows
 ```console
 $ vault login                                                                         
 Token (will be hidden):
@@ -259,6 +356,7 @@ Code: 503. Errors:
 
 デフォルトだと5つのキーが生成され、そのうち3つのキーが集まると`unseal`されます。5つの`Unseal Key`の任意の3つを使ってみましょう。`vault operator unseal`コマンドを3度実行します。
 
+・macOS , Windows
 ```console
 $ vault operator unseal                                                        
 Unseal Key (will be hidden):
@@ -305,6 +403,7 @@ HA Enabled      false
 
 3回目の出力で`Sealed`が`false`に変化したことがわかるでしょう。この状態で再度ログインします。
 
+・macOS , Windows
 ```console
 $ vault login
 Token (will be hidden):
