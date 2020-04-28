@@ -18,7 +18,7 @@ mv /path/to/vault /usr/local/bin
 chmod +x /usr/local/bin/vault
 ```
 
-新しい端末を立ち上げ、Vaultのバージョンを確認します。
+以下のコマンドでVaultのバージョンを確認します。
 
 ・macOS
 ```console
@@ -100,10 +100,11 @@ Root Token: s.nKDVwUpsd506whf7zz82sLv4
 
 途中で出力される`Root Token`は後で使いますのでメモしてとっておきましょう。`-dev`モードで起動すると、データーストレージのコンフィグレーション等を行うことなく、プリセットされた設定で手軽に起動することが出来ます。クラスタ構成やデータストレージなど細かな設定が必要な場合には利用しません。また、デフォルトだとデータはインメモリに保存されるため、起動毎にデータが消滅します。
 
-では、先ほど取得したトークンでログインしてみます。
+コンソールをもう一つ立ち上げ、先ほど取得したトークンでログインしてみます。
 
 ・macOS
 ```console
+$ export VAULT_ADDR='http://127.0.0.1:8200'
 $ vault login                                                                                             
 Token (will be hidden):
 Success! You are now authenticated. The token information displayed below
@@ -112,8 +113,8 @@ again. Future Vault requests will automatically use this token.
 
 Key                  Value
 ---                  -----
-token                s.rAc6mBZgrNwPxSky2dBJkgSd
-token_accessor       SgvDbZAFk0RU7bHvAtNCpw3B
+token                s.nKDVwUpsd506whf7zz82sLv4
+token_accessor       yyV7V3W8uu2AHHbJeIPuv9nN
 token_duration       ∞
 token_renewable      false
 token_policies       ["root"]
@@ -130,8 +131,8 @@ again. Future Vault requests will automatically use this token.
 
 Key                  Value
 ---                  -----
-token                s.DdlXQO9pqjgPNPKfFLFRL7Gi
-token_accessor       8IrJ0S2TSfpZG3svvzniFF22
+token                s.nKDVwUpsd506whf7zz82sLv4
+token_accessor       yyV7V3W8uu2AHHbJeIPuv9nN
 token_duration       ∞
 token_renewable      false
 token_policies       ["root"]
