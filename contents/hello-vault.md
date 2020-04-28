@@ -123,6 +123,7 @@ policies             ["root"]
 ```
 ・Windows
 ```shell
+PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
 PS > vault.exe login
 Token (will be hidden):
 Success! You are now authenticated. The token information displayed below
