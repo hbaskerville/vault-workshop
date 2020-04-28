@@ -6,8 +6,9 @@
 
 [こちら](https://www.vaultproject.io/downloads.html)のWebサイトからご自身のOSに合ったものをダウンロード・解凍してください。
 
-```
+```shell
 wget https://releases.hashicorp.com/vault/1.4.0/vault_1.4.0_linux_amd64.zip
+unzip vault_1.4.0_linux_amd64.zip
 ```
 
 パスを通します。以下はmacOSの例ですが、OSにあった手順で`vault`コマンドにパスを通します。
