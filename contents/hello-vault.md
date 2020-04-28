@@ -23,12 +23,12 @@ chmod +x /usr/local/bin/vault
 ・macOS
 ```console
 $ vault -version 
-Vault v1.1.1+ent ('7a8b0b75453b40e25efdaf67871464d2dcf17a46')
+Vault v1.4.0
 ```
 ・Windows
 ```shell
 PS > vault.exe -version
-Vault v1.3.1
+Vault v1.4.0
 ```
 
 これでインストールは完了です。
