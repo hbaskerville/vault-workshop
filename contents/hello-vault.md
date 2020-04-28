@@ -48,10 +48,10 @@ $ vault server -dev
          Cluster Address: https://127.0.0.1:8201
               Listener 1: tcp (addr: "127.0.0.1:8200", cluster address: "127.0.0.1:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "disabled")
                Log Level: info
-                   Mlock: supported: false, enabled: false
+                   Mlock: supported: true, enabled: false
+           Recovery Mode: false
                  Storage: inmem
-                 Version: Vault v1.1.1+ent
-             Version Sha: 7a8b0b75453b40e25efdaf67871464d2dcf17a46
+                 Version: Vault v1.4.0
 
 WARNING! dev mode is enabled! In this mode, Vault runs entirely in-memory
 and starts unsealed with a single unseal key. The root token is already
@@ -64,8 +64,8 @@ You may need to set the following environment variable:
 The unseal key and root token are displayed below in case you want to
 seal/unseal the Vault or re-authenticate.
 
-Unseal Key: CNmWA769OVVTcyOptf3mFDPW5sVHOE4fw0yRnV7Tl74=
-Root Token: s.rAc6mBZgrNwPxSky2dBJkgSd 
+Unseal Key: tab+R5TDNCT2Wl+e3RMIMNScy+ktTUzilMj9qCvYURw=
+Root Token: s.nKDVwUpsd506whf7zz82sLv4
 ```
 ・Windows
 ```shell
@@ -78,9 +78,10 @@ PS > vault.exe server -dev
          Cluster Address: https://127.0.0.1:8201
               Listener 1: tcp (addr: "127.0.0.1:8200", cluster address: "127.0.0.1:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "disabled")
                Log Level: info
-                   Mlock: supported: false, enabled: false
+                   Mlock: supported: true, enabled: false
+           Recovery Mode: false
                  Storage: inmem
-                 Version: Vault v1.2.2
+                 Version: Vault v1.4.0
 
 WARNING! dev mode is enabled! In this mode, Vault runs entirely in-memory
 and starts unsealed with a single unseal key. The root token is already
@@ -88,16 +89,13 @@ authenticated to the CLI, so you can immediately begin using Vault.
 
 You may need to set the following environment variable:
 
-PowerShell:
-    $env:VAULT_ADDR="http://127.0.0.1:8200"
-cmd.exe:
-    set VAULT_ADDR=http://127.0.0.1:8200
+    $ export VAULT_ADDR='http://127.0.0.1:8200'
 
 The unseal key and root token are displayed below in case you want to
 seal/unseal the Vault or re-authenticate.
 
-Unseal Key: vuv9ozqUusLGVOTBekuSlgZ1L6KtNlxQJjyJpihxGOk=
-Root Token: s.DdlXQO9pqjgPNPKfFLFRL7Gi
+Unseal Key: tab+R5TDNCT2Wl+e3RMIMNScy+ktTUzilMj9qCvYURw=
+Root Token: s.nKDVwUpsd506whf7zz82sLv4
 ```
 
 途中で出力される`Root Token`は後で使いますのでメモしてとっておきましょう。`-dev`モードで起動すると、データーストレージのコンフィグレーション等を行うことなく、プリセットされた設定で手軽に起動することが出来ます。クラスタ構成やデータストレージなど細かな設定が必要な場合には利用しません。また、デフォルトだとデータはインメモリに保存されるため、起動毎にデータが消滅します。
