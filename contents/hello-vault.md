@@ -205,23 +205,35 @@ curlコマンドを使ったリクエストが表示されました。アプリ�
 ```console
 $ vault kv get -format=yaml secret/mypassword    
 data:
-  name: kabu
-  password: passwd
-lease_duration: 2764800
+  data:
+    password: p@SSW0d
+  metadata:
+    created_time: "2020-04-28T01:52:42.723031949Z"
+    deletion_time: ""
+    destroyed: false
+    version: 1
+lease_duration: 0
 lease_id: ""
 renewable: false
-request_id: 33de9c9d-1455-ca31-5571-84d69d0a0b77
+request_id: 3372aabc-5203-b2e2-8353-2a8fcd20504c
 warnings: null
 
 $ vault kv get -format=json secret/mypassword                            
 {
-  "request_id": "15a27428-e566-186b-3a47-b66c727f5f02",
+  "request_id": "74e640f6-0e34-3cca-0685-195091859425",
   "lease_id": "",
-  "lease_duration": 2764800,
+  "lease_duration": 0,
   "renewable": false,
   "data": {
-    "name": "kabu",
-    "password": "passwd"
+    "data": {
+      "password": "p@SSW0d"
+    },
+    "metadata": {
+      "created_time": "2020-04-28T01:52:42.723031949Z",
+      "deletion_time": "",
+      "destroyed": false,
+      "version": 1
+    }
   },
   "warnings": null
 }
