@@ -6,21 +6,21 @@
 
 [こちら](https://www.vaultproject.io/downloads.html)のWebサイトからご自身のOSに合ったものをダウンロード・解凍してください。
 
-```shell
-wget https://releases.hashicorp.com/vault/1.4.0/vault_1.4.0_linux_amd64.zip
-unzip vault_1.4.0_linux_amd64.zip
-```
-
-パスを通します。以下はmacOSの例ですが、OSにあった手順で`vault`コマンドにパスを通します。
+検証環境にはVault1.4がダウンロードしてあります。
 
 ```shell
-mv /path/to/vault /usr/local/bin
-chmod +x /usr/local/bin/vault
+unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
 ```
+
+> パスを通します。以下はmacOSの例ですが、OSにあった手順で`vault`コマンドにパスを通します。
+> ```shell
+> mv /path/to/vault /usr/local/bin
+> chmod +x /usr/local/bin/vault
+> ```
 
 以下のコマンドでVaultのバージョンを確認します。
 
-・macOS
+・macOS , Linux
 ```console
 $ vault -version 
 Vault v1.4.0
@@ -37,7 +37,7 @@ Vault v1.4.0
 
 次にVaultサーバを立ち上げ、GenericなシークレットをVaultに保存して取り出してみます。
 
-・macOS
+・macOS , Linux
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault server -dev
@@ -102,7 +102,7 @@ Root Token: s.nKDVwUpsd506whf7zz82sLv4
 
 コンソールをもう一つ立ち上げ、先ほど取得したトークンでログインしてみます。
 
-・macOS
+・macOS , Linux
 ```console
 $ export VAULT_ADDR='http://127.0.0.1:8200'
 $ vault login                                                                                             
@@ -143,7 +143,7 @@ policies             ["root"]
 
 現在有効になっているシークレットエンジンを見てみます。現在使っているトークンはroot権限と紐づいているため、現在有効になっている全てのシークレットにアクセスすることが可能です。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault secrets list 
 Path          Type         Accessor              Description
@@ -156,7 +156,7 @@ sys/          system       system_b2dfb5a6       system endpoints used for contr
 
 `kv`シークレットエンジンを使って、簡単なシークレットをVaultに保存して取り出してみます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv list secret/                         
 No value found at secret/metadata
@@ -191,7 +191,7 @@ password    p@SSW0d
 
 また、VaultのCLIはAPIへのHTTPSのアクセスをラップしているため、全てのCLIでの操作はAPIへのcurlのリクエストに変換できます。`-output-curl-string`を使うだけです。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv list -output-curl-string secret/
 curl -H "X-Vault-Token: $(vault print token)" http://127.0.0.1:8200/v1/kv/metadata?list=true
@@ -201,7 +201,7 @@ curlコマンドを使ったリクエストが表示されました。アプリ�
 
 また、デフォルトではテーブル形式ですが様々なフォーマットで出力を得られます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv get -format=yaml secret/mypassword    
 data:
@@ -241,7 +241,7 @@ $ vault kv get -format=json secret/mypassword
 
 特定のフィールドのデータを抽出することもできます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv get -format=json -field=password secret/mypassword
 "p@SSW0d"
@@ -255,7 +255,7 @@ $ vault kv get -format=json -field=password secret/mypassword
 
 デスクトップに任意のフォルダーを作って、以下のファイルを作成します。ファイル名は`vault-local-config.hcl`とします。`path`は書き換えてください。
 
-・macOS
+・macOS , Linux
 ```shell 
 $ mkdir vault-workshop
 $ cd vault-workshop
@@ -295,7 +295,7 @@ ui = true
 
 ストレージのタイプは複数選択できますが、ここではローカルファイルを使います。実際の運用で可用性などを考慮する場合はConsulなどHAの機能が盛り込まれたストレージを使うべきです。このコンフィグを使ってVaultを再度起動してみましょう。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault server -config vault-local-config.hcl
 WARNING! mlock is not supported on this system! An mlockall(2)-like syscall to
@@ -326,7 +326,7 @@ container.
 
 別の端末を立ち上げて以下のコマンドを実行してください。GUIでも同様のことが出来ますが、このハンズオンでは全てCLIを使います。
 
-・macOS
+・macOS , Linux
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault operator init
@@ -353,7 +353,7 @@ Initial Root Token: s.51du1iIeam79Q5fBRBALVhRB
 
 initの処理をすると、Vaultを`unseal`するためのキーと`Initial Root Token`が生成されます。試しにこの状態でログインしてみます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault login                                                                         
 Token (will be hidden):
@@ -369,7 +369,7 @@ Code: 503. Errors:
 
 デフォルトだと5つのキーが生成され、そのうち3つのキーが集まると`unseal`されます。5つの`Unseal Key`の任意の3つを使ってみましょう。`vault operator unseal`コマンドを3度実行します。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault operator unseal                                                        
 Unseal Key (will be hidden):
@@ -416,7 +416,7 @@ HA Enabled      false
 
 3回目の出力で`Sealed`が`false`に変化したことがわかるでしょう。この状態で再度ログインします。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault login
 Token (will be hidden):
