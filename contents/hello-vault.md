@@ -9,7 +9,9 @@
 検証環境にはVault1.4がダウンロードしてあります。
 
 ```shell
-unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
+$ unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
+$ vault -autocomplete-install
+$ complete -C /usr/local/bin/vault vault
 ```
 
 > パスを通します。以下はmacOSの例ですが、OSにあった手順で`vault`コマンドにパスを通します。
@@ -20,16 +22,19 @@ unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
 
 以下のコマンドでVaultのバージョンを確認します。
 
-・macOS , Linux
+<details><summary>・macOS , Linux</summary>
 ```console
 $ vault -version 
 Vault v1.4.0
 ```
-・Windows
+</details>
+
+<details><summary>・Windows</summary>
 ```shell
 PS > vault.exe -version
 Vault v1.4.0
 ```
+</details>
 
 これでインストールは完了です。
 
