@@ -297,6 +297,7 @@ ui = true
 
 ・macOS , Linux , Windows
 ```console
+$ sudo setcap cap_ipc_lock=+ep /usr/local/bin/vault
 $ vault server -config vault-local-config.hcl
 WARNING! mlock is not supported on this system! An mlockall(2)-like syscall to
 prevent memory from being swapped to disk is not supported on this system. For
