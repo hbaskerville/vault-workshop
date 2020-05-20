@@ -253,7 +253,7 @@ $ vault kv get -format=json -field=password secret/mypassword
 
 一旦Vaultのサーバを停止し、次はVaultのコンフィグレーションを作成し、起動してみます。Vaultのコンフィグレーションは`HashiCorp Configuration Language`で記述します。
 
-デスクトップに任意のフォルダーを作って、以下のファイルを作成します。ファイル名は`vault-local-config.hcl`とします。`path`は書き換えてください。
+デスクトップに任意のフォルダーを作って、以下のファイルを作成します。ファイル名は`vault-local-config.hcl`とします。`path`の値は適宜書き換えてください。
 
 ・macOS , Linux
 ```shell 
@@ -261,7 +261,7 @@ $ mkdir vault-workshop
 $ cd vault-workshop
 $ cat > vault-local-config.hcl <<EOF
 storage "file" {
-   path = "/path/to/vault-workshop/vaultdata"
+   path = "/home/ec2-user/vault-workshop/vaultdata"
 }
 
 listener "tcp" {
