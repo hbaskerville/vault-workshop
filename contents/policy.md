@@ -108,7 +108,7 @@ PS > $env:VAULT_TOKEN = $env:DEFAULT_TOKEN vault list database/roles
 
 ・macOS , Linux
 ```shell
-$ cd /path/to/vault-workshop
+$ cd /home/ec2-user/vault-workshop
 $ cat > my-first-policy.hcl <<EOF
 path "database/*" {
   capabilities = [ "read", "list"]
@@ -128,6 +128,7 @@ path "database/*" {
 
 ・macOS , Linux
 ```console
+$ export ROOT_TOKEN=<Vault イニシャライズ時に発行されるRootTokenを入力します> 
 $ VAULT_TOKEN=$ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 Success! Uploaded policy: my-policy
 ```
