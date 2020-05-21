@@ -10,7 +10,7 @@
 
 まず、プリセットされるポリシー一覧を確認してみましょう。ポリシーを管理するエンドポイントは`sys/policy`と`sys/policies`です。`sys`のエンドポイントには[その他にも様々な機能](https://www.vaultproject.io/api/system/index.html)が用意されています。
 
-・macOS
+・macOS , Linux
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault list sys/policy
@@ -31,7 +31,7 @@ default
 root
 ```
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault read sys/policy/default
 
@@ -57,7 +57,7 @@ path "auth/token/revoke-self" {
 
 `path`と指定されているのが各エンドポイントで`capablities`が各エンドポイントに対する権限を現しています。試しに`default`の権限を持つトークンを発行してみましょう。`default`にはこの前に作成した`database`への権限はないので`database`のパスへの如何なる操作もできないはずです。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault token create -policy=default
 Key                  Value
@@ -73,7 +73,7 @@ policies             ["default"]
 
 `default`の権限を持ったトークンを生成しました。このトークンをコピーします。Tokenを環境変数にセットしておきましょう。
 
-・macOS
+・macOS , Linux
 ```shell
 $ export DEFAULT_TOKEN=s.acBPCz3lfDryfVr01RgwyTqK
 $ export ROOT_TOKEN=s.51du1iIeam79Q5fBRBALVhRB
@@ -86,7 +86,7 @@ PS > $env:ROOT_TOKEN=s.51du1iIeam79Q5fBRBALVhRB
 
 `database`エンドポイントにアクセスしましょう。権限がないため`permission denied`が発生します。
 
-・macOS
+・macOS , Linux
 ```console
 $ VAULT_TOKEN=$DEFAULT_TOKEN vault list database/roles
 Error listing database/roles/: Error making API request.
@@ -106,7 +106,7 @@ PS > $env:VAULT_TOKEN = $env:DEFAULT_TOKEN vault list database/roles
 
 ポリシーはVaultのコンフィグレーションと同様`HCL`で記述します。
 
-・macOS
+・macOS , Linux
 ```shell
 $ cd /path/to/vault-workshop
 $ cat > my-first-policy.hcl <<EOF
@@ -126,7 +126,7 @@ path "database/*" {
 
 作ったら`vault policy write`のコマンドでポリシーを作成します。ポリシーの作成はRoot Tokenで実施します。
 
-・macOS
+・macOS , Linux
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 Success! Uploaded policy: my-policy
@@ -136,7 +136,7 @@ Success! Uploaded policy: my-policy
 PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 ```
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault policy list           
 default
@@ -151,7 +151,7 @@ path "database/*" {
 
 新しいポリシーができました。このポリシーと紐づけられたトークンは`database`エンドポイントへの`read`, `list`の権限を与えられます。ではトークンを発行してみます。
 
-・macOS
+・macOS , Linux
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault token create -policy=my-policy 
 Key                  Value
@@ -180,7 +180,7 @@ policies             ["default" "my-policy"]
 
 Vaultにこのトークンを使って以下のコマンドを実行してください。
 
-・macOS
+・macOS , Linux
 ```shell
 $ export MY_TOKEN=s.bA9M42W41G7tF90REMDCtMeO
 ```
@@ -189,7 +189,7 @@ $ export MY_TOKEN=s.bA9M42W41G7tF90REMDCtMeO
 PS > $env:MY_TOKEN = "s.bA9M42W41G7tF90REMDCtMeO"
 ```
 
-・macOS
+・macOS , Linux
 ```console
 $ VAULT_TOKEN=$MY_TOKEN vault list database/roles       
 Keys
@@ -250,7 +250,7 @@ Databaseのエンドポイントのread, list出来てきますがkvエンドポ
 
 次にDatabaseエンドポイントにwriteの処理をしてみましょう。
 
-・macOS
+・macOS , Linux
 ```shell
 $ VAULT_TOKEN=$MY_TOKEN vault write database/roles/role-handson-4 \
     db_name=mysql-handson-db \
@@ -286,7 +286,7 @@ Code: 403. Errors:
 
 正解は[こちら](https://raw.githubusercontent.com/tkaburagi/vault-configs/master/policies/my-first-policy.hcl)です。
 
-・macOS
+・macOS , Linux
 ```console
 $ VAULT_TOKEN=$ROOT_TOKEN vault policy write my-policy my-first-policy.hcl
 $ VAULT_TOKEN=$ROOT_TOKEN vault token create -policy=my-policy -ttl=20m
@@ -297,7 +297,7 @@ PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault policy write my-policy my-first-po
 PS > $env:VAULT_TOKEN = $env:ROOT_TOKEN vault token create -policy=my-policy -ttl=20m
 ```
 
-・macOS
+・macOS , Linux
 ```shell
 $ export MY_TOKEN=<TOKEN_ABOVE>
 ```
@@ -306,7 +306,7 @@ $ export MY_TOKEN=<TOKEN_ABOVE>
 PS > $env:MY_TOKEN = "<TOKEN_ABOVE>"
 ```
 
-・macOS
+・macOS , Linux
 ```
 $ VAULT_TOKEN=$MY_TOKEN vault list database/roles
 Keys
