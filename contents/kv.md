@@ -6,7 +6,7 @@
 
 Vaultでは各シークレットエンジンを有効化するために`enable`の処理を行います。`enable`は特定の権限を持ったトークンのみが実施できるようにすべきですが、ここではroot tokenを使います。ポリシーについては後ほど扱います。
 
-・macOS
+・macOS , Linux
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault secrets enable -path=kv -version=2 kv
@@ -41,7 +41,7 @@ sys/          system       system_ae51ee57       system endpoints used for contr
 
 先ほどと同様、データをputしてみましょう。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv put kv/iam name=kabu password=passwd
 $ vault kv get kv/iam                                            
@@ -57,7 +57,7 @@ password    passwd
 
 まずは上書きしてデータのバージョンを上げる方法です。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv enable-versioning kv
 $ vault kv get kv/iam
@@ -78,7 +78,7 @@ password    passwd
 
 `enable-versionin`をするとメタデータが付与され、バージョン管理されます。データを上書きしてバージョン2を作ってみます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv put kv/iam name=kabu-2 password=passwd
 Key              Value
@@ -106,7 +106,7 @@ password    passwd
 
 データが上書きされてバージョン2のデータが生成されました。古いバージョンのデータは`-version`オプションを付与することで参照できます。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv get -version=1 kv/iam
 ====== Metadata ======
@@ -126,7 +126,7 @@ password    passwd
 
 古いバージョンのデータを削除する際は以下の手順です。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv destroy -versions=1 kv/iam
 $ vault kv get -version=1 kv/iam
@@ -156,7 +156,7 @@ password    passwd
 
 二つ目の更新の方法は`-patch`オプションを付与する方法です。先ほどの上書きの方法だと、キーを忘れてアップデートするとどうなるか試してみましょう。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv put kv/iam password=passwd-2
 
@@ -184,7 +184,7 @@ password    passwd-2
 
 このようにキーの存在ごと上書きされてしまいます。つぎに`patch`オプションを使ってみます。まずはデータを戻します。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv put kv/iam name=kabu-2 password=passwd
 Key              Value
@@ -212,7 +212,7 @@ password    passwd
 
 データの一部を更新してみましょう。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv patch kv/iam password=passwd
 $ vault kv get kv/iam
@@ -234,7 +234,7 @@ password    passwd-2
 
 最後にデータを削除します。
 
-・macOS , Windows
+・macOS , Linux , Windows
 ```console
 $ vault kv delete kv/iam
 $ vault kv metadata delete kv/iam
