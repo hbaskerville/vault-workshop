@@ -9,7 +9,7 @@
 検証環境にはVault1.4がダウンロードしてあります。
 
 ```shell
-$ unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
+$ sudo unzip -d /usr/local/bin/ vault_1.4.0_linux_amd64.zip
 $ vault -autocomplete-install
 $ complete -C /usr/local/bin/vault vault
 ```
@@ -23,17 +23,21 @@ $ complete -C /usr/local/bin/vault vault
 以下のコマンドでVaultのバージョンを確認します。
 
 <details><summary>・macOS , Linux</summary>
+
 ```console
 $ vault -version 
 Vault v1.4.0
 ```
+
 </details>
 
 <details><summary>・Windows</summary>
+  
 ```shell
 PS > vault.exe -version
 Vault v1.4.0
 ```
+
 </details>
 
 これでインストールは完了です。
@@ -42,7 +46,8 @@ Vault v1.4.0
 
 次にVaultサーバを立ち上げ、GenericなシークレットをVaultに保存して取り出してみます。
 
-・macOS , Linux
+<details><summary>・macOS , Linux</summary>
+
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault server -dev
@@ -72,7 +77,11 @@ seal/unseal the Vault or re-authenticate.
 Unseal Key: tab+R5TDNCT2Wl+e3RMIMNScy+ktTUzilMj9qCvYURw=
 Root Token: s.nKDVwUpsd506whf7zz82sLv4
 ```
-・Windows
+
+</details>
+
+<details><summary>・Windows</summary>
+ 
 ```shell
 PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
 PS > vault.exe server -dev
@@ -103,11 +112,14 @@ Unseal Key: tab+R5TDNCT2Wl+e3RMIMNScy+ktTUzilMj9qCvYURw=
 Root Token: s.nKDVwUpsd506whf7zz82sLv4
 ```
 
+</details>
+
 途中で出力される`Root Token`は後で使いますのでメモしてとっておきましょう。`-dev`モードで起動すると、データーストレージのコンフィグレーション等を行うことなく、プリセットされた設定で手軽に起動することが出来ます。クラスタ構成やデータストレージなど細かな設定が必要な場合には利用しません。また、デフォルトだとデータはインメモリに保存されるため、起動毎にデータが消滅します。
 
 コンソールをもう一つ立ち上げ、先ほど取得したトークンでログインしてみます。
 
-・macOS , Linux
+<details><summary>・macOS , Linux</summary>
+  
 ```console
 $ export VAULT_ADDR='http://127.0.0.1:8200'
 $ vault login                                                                                             
@@ -126,7 +138,11 @@ token_policies       ["root"]
 identity_policies    []
 policies             ["root"]
 ```
-・Windows
+
+</details>
+
+<details><summary>・Windows</summary>
+  
 ```shell
 PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
 PS > vault.exe login
@@ -146,9 +162,12 @@ identity_policies    []
 policies             ["root"]
 ```
 
+</details>
+
 現在有効になっているシークレットエンジンを見てみます。現在使っているトークンはroot権限と紐づいているため、現在有効になっている全てのシークレットにアクセスすることが可能です。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault secrets list 
 Path          Type         Accessor              Description
@@ -159,9 +178,12 @@ secret/       kv           kv_9d34f5e6           key/value secret storage
 sys/          system       system_b2dfb5a6       system endpoints used for control, policy and debugging
 ```
 
+</details>
+
 `kv`シークレットエンジンを使って、簡単なシークレットをVaultに保存して取り出してみます。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux</summary>
+  
 ```console
 $ vault kv list secret/                         
 No value found at secret/metadata
@@ -194,19 +216,25 @@ Key         Value
 password    p@SSW0d
 ```
 
+</details>
+
 また、VaultのCLIはAPIへのHTTPSのアクセスをラップしているため、全てのCLIでの操作はAPIへのcurlのリクエストに変換できます。`-output-curl-string`を使うだけです。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault kv list -output-curl-string secret/
 curl -H "X-Vault-Token: $(vault print token)" http://127.0.0.1:8200/v1/kv/metadata?list=true
 ```
 
+</details>
+
 curlコマンドを使ったリクエストが表示されました。アプリなどのクライアントからVaultのAPIを呼ぶ時などに記述方法に迷った時などに便利です。
 
 また、デフォルトではテーブル形式ですが様々なフォーマットで出力を得られます。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault kv get -format=yaml secret/mypassword    
 data:
@@ -244,13 +272,18 @@ $ vault kv get -format=json secret/mypassword
 }
 ```
 
+</details>
+
 特定のフィールドのデータを抽出することもできます。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault kv get -format=json -field=password secret/mypassword
 "p@SSW0d"
 ```
+
+</details>
 
 さて、Vaultにデータをputしてget出来ました。以降のセッションでその他のシークレットを扱っていきますが、「認証され」「ポシリーに基づいたトークンを取得し」「トークンを利用してシークレットにアクセスする」これが基本の流れです。
 
@@ -260,7 +293,8 @@ $ vault kv get -format=json -field=password secret/mypassword
 
 デスクトップに任意のフォルダーを作って、以下のファイルを作成します。ファイル名は`vault-local-config.hcl`とします。`path`の値は適宜書き換えてください。
 
-・macOS , Linux
+<details><summary>・macOS , Linux</summary>
+  
 ```shell 
 $ mkdir vault-workshop
 $ cd vault-workshop
@@ -277,7 +311,11 @@ listener "tcp" {
 ui = true
 EOF
 ```
-・Windows
+
+</details>
+
+<details><summary>・Windows</summary>
+  
 ```shell
 PS > mkdir vault-workshop
 PS > cd vault-workshop
@@ -296,11 +334,14 @@ listener "tcp" {
 ui = true
 ```
 
+</details>
+
 ここではストレージ、リスナーとUIの最低限の設定をしています。その他にも[様々な設定](https://www.vaultproject.io/docs/configuration/)が出来ます。
 
 ストレージのタイプは複数選択できますが、ここではローカルファイルを使います。実際の運用で可用性などを考慮する場合はConsulなどHAの機能が盛り込まれたストレージを使うべきです。このコンフィグを使ってVaultを再度起動してみましょう。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ sudo setcap cap_ipc_lock=+ep /usr/local/bin/vault
 $ vault server -config vault-local-config.hcl
@@ -323,6 +364,9 @@ container.
 
 ==> Vault server started! Log data will stream in below:
 ```
+
+</details>
+
 今回はプロダクションモードで起動しています。先ほどと違い、`Root Token`, `Unseal Key`は出力されません。Vaultを利用するまでに`init`と`unseal`という処理が必要です。
 
 >起動時に"Error initializing core: Failed to lock memory: cannot allocate memory"のエラーが出る場合は以下の1行をvault-local-config.hclに追記してください。
@@ -332,7 +376,8 @@ container.
 
 別の端末を立ち上げて以下のコマンドを実行してください。GUIでも同様のことが出来ますが、このハンズオンでは全てCLIを使います。
 
-・macOS , Linux
+<details><summary>・macOS , Linux</summary>
+  
 ```console
 $ export VAULT_ADDR="http://127.0.0.1:8200"
 $ vault operator init
@@ -344,7 +389,11 @@ Unseal Key 5: e3DwN3SOnSh/boJmCav4Ve8FOD3oSLjwywNwy+P5qrcx
 
 Initial Root Token: s.51du1iIeam79Q5fBRBALVhRB
 ```
-・Windows
+
+</details>
+
+<details><summary>・Windows</summary>
+  
 ```shell
 PS > $env:VAULT_ADDR = "http://127.0.0.1:8200"
 PS > vault operator init
@@ -357,9 +406,12 @@ Unseal Key 5: e3DwN3SOnSh/boJmCav4Ve8FOD3oSLjwywNwy+P5qrcx
 Initial Root Token: s.51du1iIeam79Q5fBRBALVhRB
 ```
 
+</details>
+
 initの処理をすると、Vaultを`unseal`するためのキーと`Initial Root Token`が生成されます。試しにこの状態でログインしてみます。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault login                                                                         
 Token (will be hidden):
@@ -371,11 +423,14 @@ Code: 503. Errors:
 * error performing token check: Vault is sealed
 ```
 
+</details>
+
 エラーになるはずです。Vaultでは`sealed`という状態になっているといかに強力な権限のあるトークンを使ったとしてもいかなる操作も受け付けません。`unseal`の処理は`Unseal Key`を使います。
 
 デフォルトだと5つのキーが生成され、そのうち3つのキーが集まると`unseal`されます。5つの`Unseal Key`の任意の3つを使ってみましょう。`vault operator unseal`コマンドを3度実行します。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault operator unseal                                                        
 Unseal Key (will be hidden):
@@ -420,9 +475,12 @@ Cluster ID      3f7c2734-ec50-8834-e6c9-7a1c35726d4f
 HA Enabled      false
 ``` 
 
+</details>
+
 3回目の出力で`Sealed`が`false`に変化したことがわかるでしょう。この状態で再度ログインします。
 
-・macOS , Linux , Windows
+<details><summary>・macOS , Linux , Windows</summary>
+  
 ```console
 $ vault login
 Token (will be hidden):
@@ -440,6 +498,8 @@ token_policies       ["root"]
 identity_policies    []
 policies             ["root"]
 ```
+
+</details>
 
 これでログインは成功です。以降の章ではこの環境を使ってハンズオンを進めていきます。
 
