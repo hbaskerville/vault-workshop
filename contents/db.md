@@ -398,7 +398,8 @@ ERROR 1045 (28000): Access denied for user 'v-role-bnsYTFQAj'@'localhost' (using
 
 ユーザが破棄され、利用不可能になりました。
 
-2つ目の方法は`revoke`コマンドを使って明示的に破棄する方法です。`role-handson-2`のロールを使って新規のユーザを払い出します。払い出された`lease_id`をメモっておいてください。revokeの際に使用します。
+2つ目の方法は`revoke`コマンドを使って明示的に破棄する方法です。`role-handson-2`のロールを使って新規のユーザを払い出します。
+払い出された`lease_id`をメモっておいてください。revokeの際に使用します。
 
 ・macOS , Linux , Windows
 ```console
@@ -432,7 +433,7 @@ mysql>
 
 ・macOS , Linux , Windows
 ```console
-$ vault lease revoke database/creds/role-handson-2/JSnf6zV2jTrRJmI66Hfz189K
+$ vault lease revoke database/creds/role-handson-2/JSnf6zV2jTrRJmI66Hfz189K (先程の手順にて発行されたlease_idを指定して下さい)
 All revocation operations queued successfully!
 
 $ mysql -u <USERNAME_GEN_BY_VAULT> -p
