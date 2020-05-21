@@ -459,7 +459,7 @@ $ vault write database/config/mysql-handson-db \
   allowed_roles="role-handson","role-handson-2","role-handson-3" \
   username="root" \
   password="rooooot" \
-  root_rotation_statements="SET PASSWORD = PASSWORD('{{password}}')"
+  root_rotation_statements="SET PASSWORD = '{{password}}'"
 ``` 
 
 その後、`rotate-root`のAPIを実行するだけです。
